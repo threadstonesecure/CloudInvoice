@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+   <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+         <!-- XML Schema Generated from XML Document on Tue Dec 05 2017 17:21:52 GMT-0500 (Eastern Standard Time) -->
+         <!-- with XmlGrid.net Free Online Service http://xmlgrid.net -->
+         <xs:element name="DATA_DS">
+               <xs:complexType>
+                     <xs:sequence>
+                           <xs:element name="PARENTID" type="xs:int"></xs:element>
+                           <xs:element name="G_1">
+                                 <xs:complexType>
+                                       <xs:sequence>
+                                             <xs:element name="REQUEST_ID" type="xs:int"></xs:element>
+                                       </xs:sequence>
+                                 </xs:complexType>
+                           </xs:element>
+                     </xs:sequence>
+               </xs:complexType>
+         </xs:element>
+   </xs:schema>
