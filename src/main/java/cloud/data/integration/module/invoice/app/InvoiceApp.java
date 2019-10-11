@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;
 
-import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -23,7 +22,6 @@ public class InvoiceApp {
 	final static Logger logger = Logger.getLogger(InvoiceApp.class);
 	public static void main(String[] args) {
 		try {
-			BasicConfigurator.configure();
 			initializeLog4j(args[0]);
 			logger.debug("Starting main thread file "+args[0] );
 			InvoiceRunnable invRunnable = new InvoiceRunnable(args[0]);

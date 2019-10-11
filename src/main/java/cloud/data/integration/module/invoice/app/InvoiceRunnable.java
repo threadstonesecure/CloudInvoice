@@ -82,14 +82,14 @@ public class InvoiceRunnable implements Runnable{
 			if(downloadedFilesList.length>0) {
 				
 				
-				if(customFile!=null && customFile.equalsIgnoreCase("boa"))
-				{	
+				if (customFile != null && customFile.equalsIgnoreCase("boa")) {
 					// for BOA you need a create header file
 					// and Item level file from one single master file
 					
 					for (File file : downloadedFilesList) {
 						//System.out.println("file path"+file.getAbsolutePath());
-						splitMasterFileToHeaderAndItemFiles(file.getAbsolutePath(),inboundHeaderFileName,inboundLineFileName);
+						splitMasterFileToHeaderAndItemFiles(file.getAbsolutePath(), inboundHeaderFileName,
+								inboundLineFileName);
 					}
 					
 					
@@ -108,7 +108,10 @@ public class InvoiceRunnable implements Runnable{
 					if(headerList.size() ==0 && itemList.size()==0 ) {
 						
 						MailManager.sendMail(InvoiceUtil.getPropertyValue("MAIL_USER_FROM_ADDRESS"),
-						InvoiceUtil.getPropertyValue("MAIL_USER_TO_ADDRESS"),InvoiceUtil.getPropertyValue("MAIL_USER_CC_ADDRESS"),"File names not matching for "+customFile,"Please verify file names in folder for " +customFile);
+								InvoiceUtil.getPropertyValue("MAIL_USER_TO_ADDRESS"),
+								InvoiceUtil.getPropertyValue("MAIL_USER_CC_ADDRESS"),
+								"File names not matching for " + customFile,
+								"Please verify file names in folder for " + customFile);
 						logger.error("File names not matching for "+customFile);
 						throw new Exception("File names not matching for "+customFile);
 					}
@@ -143,33 +146,46 @@ public class InvoiceRunnable implements Runnable{
             logger.debug("End job status");
 			String subject = null;
 			String message = null;
+				String fileListMessage = "Files processed in this run for " + customFile.toUpperCase() + " :";
+				for (File file : downloadedFilesList) {
+					fileListMessage = fileListMessage + "\n" + file.getAbsolutePath();
+				}
 
 			if (essSubmittedJobStatusLI.equalsIgnoreCase("ERROR")) {
-				logger.debug(
-						"An error has occurred at Oracle Fusion Server while processing the submitted ESSJob");
-				subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_ERROR_SUBJECT_LINE_LOAD_INTERFACE");
-				message = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_ERROR_TEXT_FOR_LOAD_INTERFACE");
-//				downLoadExecDetailsAndSendEmail(service, jobRequestIdLI, essSubmittedJobStatusLI,localLogDirectory, subject, message);
-			}
-			else if (essSubmittedJobStatusLI.equalsIgnoreCase("WARNING")) {
-				subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_WARNING_SUBJECT_LINE_LOAD_INTERFACE");
-				message = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_WARNING_TEXT_FOR_LOAD_INTERFACE");
-//				downLoadExecDetailsAndSendEmail(service, jobRequestIdLI, essSubmittedJobStatusLI,localLogDirectory, subject, message);
-			} 
-			else if (essSubmittedJobStatusLI.equalsIgnoreCase("RUNNING")) {
-				subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_RUNNING_SUBJECT_LINE_LOAD_INTERFACE");
-				message = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_RUNNING_TEXT_FOR_LOAD_INTERFACE");
-//				downLoadExecDetailsAndSendEmail(service, jobRequestIdLI,essSubmittedJobStatusLI, localLogDirectory, subject, message);
-			}
-			else if (essSubmittedJobStatusLI.equalsIgnoreCase("SUCCEEDED")) {
-				subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_SUCCESS_SUBJECT_LINE_LOAD_INTERFACE");
-				message = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_SUCCESS_TEXT_FOR_LOAD_INTERFACE");
-//				downLoadExecDetailsAndSendEmail(service, jobRequestIdLI,essSubmittedJobStatusLI, localLogDirectory, subject, message);
+					logger.debug("An error has occurred at Oracle Fusion Server while processing the submitted ESSJob");
+					subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_ERROR_SUBJECT_LINE_LOAD_INTERFACE") + " "
+							+ customFile.toUpperCase();
+					message = fileListMessage + "\n"
+							+ InvoiceUtil.getPropertyValue("MAIL_MESSAGE_ERROR_TEXT_FOR_LOAD_INTERFACE");
+					downLoadExecDetailsAndSendEmail(service, jobRequestIdLI, essSubmittedJobStatusLI, localLogDirectory,
+							subject, message);
+				} else if (essSubmittedJobStatusLI.equalsIgnoreCase("WARNING")) {
+					subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_WARNING_SUBJECT_LINE_LOAD_INTERFACE") + " "
+							+ customFile.toUpperCase();
+					message = fileListMessage + "\n"
+							+ InvoiceUtil.getPropertyValue("MAIL_MESSAGE_WARNING_TEXT_FOR_LOAD_INTERFACE");
+					downLoadExecDetailsAndSendEmail(service, jobRequestIdLI, essSubmittedJobStatusLI, localLogDirectory,
+							subject, message);
+				} else if (essSubmittedJobStatusLI.equalsIgnoreCase("RUNNING")) {
+					subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_RUNNING_SUBJECT_LINE_LOAD_INTERFACE") + " "
+							+ customFile.toUpperCase();
+					;
+					message = fileListMessage + "\n"
+							+ InvoiceUtil.getPropertyValue("MAIL_MESSAGE_RUNNING_TEXT_FOR_LOAD_INTERFACE");
+					downLoadExecDetailsAndSendEmail(service, jobRequestIdLI, essSubmittedJobStatusLI, localLogDirectory,
+							subject, message);
+				} else if (essSubmittedJobStatusLI.equalsIgnoreCase("SUCCEEDED")) {
+					subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_SUCCESS_SUBJECT_LINE_LOAD_INTERFACE") + " "
+							+ customFile.toUpperCase();
+					message = fileListMessage + "\n"
+							+ InvoiceUtil.getPropertyValue("MAIL_MESSAGE_SUCCESS_TEXT_FOR_LOAD_INTERFACE");
+					downLoadExecDetailsAndSendEmail(service, jobRequestIdLI, essSubmittedJobStatusLI, localLogDirectory,
+							subject, message);
 				// Load is success full so send the email for load
 				
 
 				// START THE ESS JOB REQUEST TO IMPORT JOURNALS
-				File file = new File(sourceFilePath);
+					// File file = new File(sourceFilePath);
 				Long journalImportrequestId = service.submitESSJobRequestForImportPayableInvoice(customFile);
 				logger.debug("waiting thread for 2 Sec");
 				logger.debug("Thread is started sleeping " + new Date());
@@ -183,23 +199,34 @@ public class InvoiceRunnable implements Runnable{
 				if (invoiceImportESSJobStatus.equalsIgnoreCase("ERROR")) {
 					logger.debug(
 							"An error has occurred at Oracle Fusion Server while processing the submitted ESSJob");
-					subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_ERROR_SUBJECT_LINE");
-					message = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_ERROR_TEXT_FOR_INVOICE_IMPORT");
-//					downLoadExecDetailsAndSendEmail(service, journalImportrequestId,invoiceImportESSJobStatus, localLogDirectory, subject, message);
+						subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_ERROR_SUBJECT_LINE") + " "
+								+ customFile.toUpperCase();
+						message = fileListMessage + "\n"
+								+ InvoiceUtil.getPropertyValue("MAIL_MESSAGE_ERROR_TEXT_FOR_INVOICE_IMPORT");
+						downLoadExecDetailsAndSendEmail(service, journalImportrequestId, invoiceImportESSJobStatus,
+								localLogDirectory, subject, message);
 				} else if (invoiceImportESSJobStatus.equalsIgnoreCase("SUCCEEDED")) {
-					subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_SUCCESS_SUBJECT_LINE");
-					message = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_RUNNING_TEXT_FOR_INVOICE_IMPORT");
-//					downLoadExecDetailsAndSendEmail(service, journalImportrequestId,invoiceImportESSJobStatus, localLogDirectory, subject, message);
+						subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_SUCCESS_SUBJECT_LINE") + " "
+								+ customFile.toUpperCase();
+						message = fileListMessage + "\n"
+								+ InvoiceUtil.getPropertyValue("MAIL_MESSAGE_SUCCESS_TEXT_FOR_INVOICE_IMPORT");
+						downLoadExecDetailsAndSendEmail(service, journalImportrequestId, invoiceImportESSJobStatus,
+								localLogDirectory, subject, message);
 				
-					
 				} else if (invoiceImportESSJobStatus.equalsIgnoreCase("WARNING")) {
-					subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_WARNING_SUBJECT_LINE");
-					message = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_WARNING_TEXT_FOR_INVOICE_IMPORT");
-//					downLoadExecDetailsAndSendEmail(service, journalImportrequestId,invoiceImportESSJobStatus, localLogDirectory, subject, message);
+						subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_WARNING_SUBJECT_LINE") + " "
+								+ customFile.toUpperCase();
+						message = fileListMessage + "\n"
+								+ InvoiceUtil.getPropertyValue("MAIL_MESSAGE_WARNING_TEXT_FOR_INVOICE_IMPORT");
+						downLoadExecDetailsAndSendEmail(service, journalImportrequestId, invoiceImportESSJobStatus,
+								localLogDirectory, subject, message);
 				} else if (invoiceImportESSJobStatus.equalsIgnoreCase("RUNNING")) {
-					subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_RUNNING_SUBJECT_LINE");
-					message = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_RUNNING_TEXT_FOR_INVOICE_IMPORT");
-//					downLoadExecDetailsAndSendEmail(service, journalImportrequestId,invoiceImportESSJobStatus, localLogDirectory, subject, message);
+						subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_RUNNING_SUBJECT_LINE") + " "
+								+ customFile.toUpperCase();
+						message = fileListMessage + "\n"
+								+ InvoiceUtil.getPropertyValue("MAIL_MESSAGE_RUNNING_TEXT_FOR_INVOICE_IMPORT");
+						downLoadExecDetailsAndSendEmail(service, journalImportrequestId, invoiceImportESSJobStatus,
+								localLogDirectory, subject, message);
 				} 
 				
 				// find exact error in invoice report
@@ -244,8 +271,7 @@ public class InvoiceRunnable implements Runnable{
 				logger.debug("After calling output report");
 			} 
 				
-			}else
-			{
+			} else {
 				logger.error("Files not existing in folder for "+customFile);
 			}
 			} catch (IOException e) {
@@ -258,7 +284,8 @@ public class InvoiceRunnable implements Runnable{
 		
 	}
 
-	private void splitMasterFileToHeaderAndItemFiles(String fileName,String headerFileName,String itemFileName) throws IOException {
+	private void splitMasterFileToHeaderAndItemFiles(String fileName, String headerFileName, String itemFileName)
+			throws IOException {
 		// TODO Auto-generated method stub
 		 List<String[]> rList=CommonMethods.readCSVFileAsListWithoutHeader(fileName);
 		 List<String[]> hList=new ArrayList<String[]>();
@@ -267,7 +294,8 @@ public class InvoiceRunnable implements Runnable{
 		 writeListDataToHeaderFile(headerFileName,hList);
 		 
 		 List<String[]> iTemList=new ArrayList<String[]>();
-		 iTemList.add(rList.remove(rList.size()-1));
+		rList.remove(rList.size() - 1);
+		iTemList = rList;
 		 writeListDataToLineFile(itemFileName,iTemList);
 		 
 		 // last record goes to header file
@@ -291,7 +319,8 @@ public class InvoiceRunnable implements Runnable{
 		String subject="Unprocessed record file";
 		String message="Please see attached unprocessed records file";
 		MailManager.sendMailWithAttachment(InvoiceUtil.getPropertyValue("MAIL_USER_FROM_ADDRESS"),
-				InvoiceUtil.getPropertyValue("MAIL_USER_TO_ADDRESS"),InvoiceUtil.getPropertyValue("MAIL_USER_CC_ADDRESS"), subject, message,
+				InvoiceUtil.getPropertyValue("MAIL_USER_TO_ADDRESS"),
+				InvoiceUtil.getPropertyValue("MAIL_USER_CC_ADDRESS"), subject, message,
 				unzipFolder+"ErroredRecords.txt");
 		// delete all files under unZip folder
 		logger.debug("message send and deleting files under unzip folder");
@@ -300,12 +329,13 @@ public class InvoiceRunnable implements Runnable{
 		
 	}
 
-	private void downLoadExecDetailsAndSendEmail(InvoiceService service,Long jobRequestIdLI,String essSubmittedJobStatus,String localLogDirectory,String subject,String message) throws IOException, ServiceException {
+	private void downLoadExecDetailsAndSendEmail(InvoiceService service, Long jobRequestIdLI,
+			String essSubmittedJobStatus, String localLogDirectory, String subject, String message)
+			throws IOException, ServiceException {
 		// TODO Auto-generated method stub
 		
 		logger.debug("jobRequestIdLI"+jobRequestIdLI);
-		List<DocumentDetails> jobExecutionDetails = service
-				.downloadESSJobExecutionDetails(jobRequestIdLI);
+		List<DocumentDetails> jobExecutionDetails = service.downloadESSJobExecutionDetails(jobRequestIdLI);
 		byte[] fileContent;
 		String fileName = null;
 		
@@ -319,11 +349,14 @@ public class InvoiceRunnable implements Runnable{
 				Path logFilePath = FileSystems.getDefault().getPath(localLogDirectory, fileName);
 				Files.write(logFilePath, fileContent, StandardOpenOption.CREATE_NEW);
 				//subject = InvoiceUtil.getPropertyValue("MAIL_MESSAGE_WARNING_SUBJECT_LINE");
-				subject=essSubmittedJobStatus+" "+subject+" - "+fileName;
+			//	subject = essSubmittedJobStatus + " " + subject + " - " + fileName; //DK
+				subject =  subject + " - " + fileName;
 				subject=subject.substring(0, subject.lastIndexOf("."));
-				logger.debug("subject"+subject);
+				logger.debug("Subject :" + subject);
+				logger.debug("Message :" + message);
 				MailManager.sendMailWithAttachment(InvoiceUtil.getPropertyValue("MAIL_USER_FROM_ADDRESS"),
-						InvoiceUtil.getPropertyValue("MAIL_USER_TO_ADDRESS"),InvoiceUtil.getPropertyValue("MAIL_USER_CC_ADDRESS"), subject, message,
+						InvoiceUtil.getPropertyValue("MAIL_USER_TO_ADDRESS"),
+						InvoiceUtil.getPropertyValue("MAIL_USER_CC_ADDRESS"), subject, message,
 						localLogDirectory + "/" + fileName);
 			}
 		}
@@ -436,8 +469,7 @@ public class InvoiceRunnable implements Runnable{
 	private void createErrorFile(String fileName, ArrayList<String> sRecordsData, ArrayList<String> dRecordsData) {
 		// TODO Auto-generated method stub
 		
-		try ( BufferedWriter bw = new BufferedWriter (new FileWriter (fileName)) ) 
-		{			
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
 			if(sRecordsData.size()>0) {
 				bw.write ("The supplier not exist for below records" + "\n");
 				for (String line : sRecordsData) {
@@ -462,8 +494,7 @@ public class InvoiceRunnable implements Runnable{
 
 	private void createAUnprocessedRecordsFile(String fileName, ArrayList<String> unProcessedList) {
 		
-		try ( BufferedWriter bw = new BufferedWriter (new FileWriter (fileName)) ) 
-						{			
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
 							for (String line : unProcessedList) {
 								bw.write (line + "\n");
 							}
